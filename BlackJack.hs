@@ -125,28 +125,43 @@ drawBank deck bankHand
   where (deck',bankHand') = draw deck bankHand
 
 --B5
+-- | Shuffles a given deck
 shuffle :: StdGen -> Hand -> Hand
 shuffle g deck = shuffle' g deck Empty
 
+-- | Helper function to shuffle
 shuffle' :: StdGen -> Hand -> Hand -> Hand
 shuffle' g Empty newDeck = newDeck
 shuffle' g deck newDeck = shuffle' g (removeCard 0 n deck) (newDeck <+ (returnCard 0 n deck))
   where n = fst(randomR (0,((size deck)-1)) g)
 
+-- | Removes a card from a deck at a specified location
 removeCard :: Integer -> Integer -> Hand -> Hand
 removeCard _ _ Empty = Empty
 removeCard index removeAt (Add card x)
   | index == removeAt = x
   | index < removeAt = (Add card (removeCard (index+1) removeAt x))
 
+-- | Returns a card from a deck at a specified location
 returnCard :: Integer -> Integer -> Hand -> Hand
 returnCard _ _ Empty = Empty
 returnCard index location (Add card x)
   | index == location = (Add card Empty)
   | index < location = returnCard (index+1) location x
 
+-- | Checks whether a card is within a hand before and after a shuffle
+prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
+prop_shuffle_sameCards g c h =
+    c `belongsTo` h == c `belongsTo` shuffle g h
+
+-- | Checks as to whether a card is within a hand
+belongsTo :: Card -> Hand -> Bool
+c `belongsTo` Empty = False
+c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
+
 
 --B6
+--Sets up the interface
 implementation = Interface
   { iEmpty    = empty
   , iFullDeck = fullDeck
