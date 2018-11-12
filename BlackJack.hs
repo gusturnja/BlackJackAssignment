@@ -12,19 +12,11 @@ import RunGame
 import System.Random
 
 --A1
-
 -- | Returns and empty hand
 empty :: Hand
 empty = Empty
 
-hand1 = Add (Card Queen Hearts) (Add (Card King Hearts) (Add (Card Jack Hearts) Empty))
-hand2 = Add (Card Jack Hearts) (Add (Card (Numeric 9) Hearts) (Add (Card (Numeric 9) Hearts) Empty))
-hand3 = Add (Card (Numeric 5) Hearts) (Add (Card (Numeric 4) Hearts) (Add (Card Jack Hearts) Empty))
-hand4 :: Hand
-hand4 = Empty
-
 --A2
-
 -- | Calculates the lowest possible value of a hand decided on the value of the ace card
 value :: Hand -> Integer
 value hand = if (inivalue > 21) && ((numberOfAces hand) > 1) then inivalue else finalvalue
@@ -33,9 +25,9 @@ value hand = if (inivalue > 21) && ((numberOfAces hand) > 1) then inivalue else 
 
 -- | The number of aces within a hand
 numberOfAces :: Hand -> Integer
-numberOfAces Empty               = 0
+numberOfAces Empty                = 0
 numberOfAces (Add (Card Ace _) x) = 1 + numberOfAces x
-numberOfAces (Add _ x)   = numberOfAces x
+numberOfAces (Add _ x)            = numberOfAces x
 
 -- | Calculates the value of a hand using the default value of an ace
 initialValue :: Hand -> Integer
@@ -66,6 +58,7 @@ gameOver :: Hand -> Bool
 gameOver hand = if (value hand) > 21 then True else False
 
 --A4
+-- | Decides a winner based on two players hand's value and the type of player
 winner :: Hand -> Hand -> Player
 winner handP handB
   | vP == vB                         = Bank
@@ -76,11 +69,12 @@ winner handP handB
         vB = value handB
 
 --B1
+-- | Add a second hand to the end of the first hand
 (<+) :: Hand -> Hand -> Hand
-(<+) Empty hand2 = hand2
-(<+) hand1 Empty = hand1
+(<+) Empty hand2            = hand2
+(<+) hand1 Empty            = hand1
 (<+) (Add card Empty) hand2 = (Add card hand2)
-(<+) (Add card x ) hand2 = (Add card ((<+) x hand2))
+(<+) (Add card x ) hand2    = (Add card ((<+) x hand2))
 
 prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
 prop_onTopOf_assoc p1 p2 p3 =
@@ -109,19 +103,22 @@ numericSuit x y suit
   | x <= y = (Add (Card (Numeric x) suit) (numericSuit (x+1) y suit))
 
 --B3
+-- | Draw the top card off of a deck
 draw :: Hand -> Hand -> (Hand,Hand)
-draw Empty hand = error "draw : The deck is empty"
+draw Empty hand           = error "draw : The deck is empty"
 draw (Add (card) x) Empty = (x,(Add (card) Empty))
-draw (Add (card) x) hand = (x,hand <+ (Add (card) Empty))
+draw (Add (card) x) hand  = (x,hand <+ (Add (card) Empty))
 
 --B4
+-- | Play as the bank player, starting with an empty hand
 playBank :: Hand -> Hand
 playBank deck = drawBank deck Empty
 
+-- | Draw cards from a specified deck until the value of the hand is at least 16
 drawBank :: Hand -> Hand -> Hand
 drawBank deck bankHand
   | value bankHand' >= 16 = bankHand'
-  | otherwise = drawBank deck' bankHand'
+  | otherwise             = drawBank deck' bankHand'
   where (deck',bankHand') = draw deck bankHand
 
 --B5
@@ -140,14 +137,14 @@ removeCard :: Integer -> Integer -> Hand -> Hand
 removeCard _ _ Empty = Empty
 removeCard index removeAt (Add card x)
   | index == removeAt = x
-  | index < removeAt = (Add card (removeCard (index+1) removeAt x))
+  | index < removeAt  = (Add card (removeCard (index+1) removeAt x))
 
 -- | Returns a card from a deck at a specified location
 returnCard :: Integer -> Integer -> Hand -> Hand
 returnCard _ _ Empty = Empty
 returnCard index location (Add card x)
   | index == location = (Add card Empty)
-  | index < location = returnCard (index+1) location x
+  | index < location  = returnCard (index+1) location x
 
 -- | Checks whether a card is within a hand before and after a shuffle
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
