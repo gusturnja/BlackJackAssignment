@@ -1,7 +1,8 @@
 --A0
 --size hand2
--- = size (Add (Card (Numeric 2) Hearts) (Add (Card Jack Spades) Empty))
+-- = size Add (Card (Numeric 2) Hearts) (Add (Card Jack Spades) Empty)
 -- = 1 + size (Add (Card Jack Spades) Empty)
+-- = 1 + 1 + size Empty
 -- = 1 + 1 + 0
 -- = 2 + 0
 -- = 2
@@ -20,7 +21,7 @@ empty = Empty
 -- | Calculates the lowest possible value of a hand decided on the value of the ace card
 value :: Hand -> Integer
 value hand = if iniValue > 21 then finalValue else iniValue
-  where iniValue = valueWithValueOfAces 11 hand
+  where iniValue   = valueWithValueOfAces 11 hand
         finalValue = valueWithValueOfAces 1 hand
 
 -- | Calculates the value of a hand using a specified value for ace cards
@@ -45,9 +46,6 @@ valueCard (Card rank _) = valueRank rank
 -- | Determines whether the player is bust
 gameOver :: Hand -> Bool
 gameOver hand = value hand > 21
-
-hand1 =  Add (Card {rank = Ace, suit = Diamonds}) (Add (Card {rank = Numeric 10, suit = Clubs}) (Add (Card {rank = Numeric 5, suit = Spades}) (Add (Card {rank = Ace, suit = Diamonds}) Empty)))
-hand2 =  Add (Card {rank = Numeric 4, suit = Clubs}) (Add (Card {rank = Numeric 2, suit = Clubs}) (Add (Card {rank = Numeric 6, suit = Clubs}) (Add (Card {rank = Numeric 9, suit = Spades}) (Add (Card {rank = Numeric 6, suit = Hearts}) (Add (Card {rank = King, suit = Hearts}) (Add (Card {rank = Numeric 8, suit = Hearts}) (Add (Card {rank = Numeric 7, suit = Hearts}) (Add (Card {rank = Queen, suit = Clubs}) (Add (Card {rank = Ace, suit = Hearts}) (Add (Card {rank = Numeric 2, suit = Clubs}) (Add (Card {rank = Numeric 6, suit = Spades}) (Add (Card {rank = Numeric 9, suit = Diamonds}) (Add (Card {rank = Numeric 10, suit = Clubs}) (Add (Card {rank = Numeric 6, suit = Hearts}) (Add (Card {rank = Numeric 9, suit = Hearts}) (Add (Card {rank = Numeric 4, suit = Diamonds}) Empty))))))))))))))))
 
 --A4
 -- | Decides a winner based on two players hand's value and the type of player
@@ -100,8 +98,8 @@ numericSuit _ _ _ = error "Unexpected input error"
 -- | Draw the top card off of a deck
 draw :: Hand -> Hand -> (Hand,Hand)
 draw Empty hand           = error "draw : The deck is empty"
-draw (Add (card) x) Empty = x,Add card Empty
-draw (Add (card) x) hand  = x,hand <+ Add card Empty
+draw (Add (card) x) Empty = (x, Add card Empty)
+draw (Add (card) x) hand  = (x, hand <+ Add card Empty)
 
 --B4
 -- | Play as the bank player, starting with an empty hand
@@ -123,12 +121,12 @@ shuffle g deck = shuffle' g deck Empty
 -- | Helper function to shuffle
 shuffle' :: StdGen -> Hand -> Hand -> Hand
 shuffle' g Empty newDeck = newDeck
-shuffle' g deck newDeck = shuffle' g (removeCard 0 n deck) (newDeck <+ (returnCard 0 n deck))
+shuffle' g deck newDeck  = shuffle' g (removeCard 0 n deck) (newDeck <+ (returnCard 0 n deck))
   where n = fst(randomR (0,((size deck)-1)) g)
 
 -- | Removes a card from a deck at a specified location
 removeCard :: Integer -> Integer -> Hand -> Hand
-removeCard _ _ Empty = Empty
+removeCard _ _ Empty  = Empty
 removeCard index removeAt (Add card x)
   | index == removeAt = x
   | index < removeAt  = Add card (removeCard (index+1) removeAt x)
@@ -136,7 +134,7 @@ removeCard _ _ _ = error "Unexpected input error"
 
 -- | Returns a card from a deck at a specified location
 returnCard :: Integer -> Integer -> Hand -> Hand
-returnCard _ _ Empty = Empty
+returnCard _ _ Empty  = Empty
 returnCard index location (Add card x)
   | index == location = Add card Empty
   | index < location  = returnCard (index+1) location x
