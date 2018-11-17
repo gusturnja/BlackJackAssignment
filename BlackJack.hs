@@ -57,14 +57,11 @@ winner handP handB
   | vB > 21 && vP > 21               = Bank
   where vP = value handP
         vB = value handB
-winner _ _ = error "Unexpected input error"
 
 --B1
 -- | Add a second hand to the end of the first hand
 (<+) :: Hand -> Hand -> Hand
 (<+) Empty hand2            = hand2
-(<+) hand1 Empty            = hand1
-(<+) (Add card Empty) hand2 = Add card hand2
 (<+) (Add card x ) hand2    = Add card ((<+) x hand2)
 
 prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
@@ -91,8 +88,7 @@ fullNonNumericSuit suit = Add (Card King suit) (Add (Card Queen suit) (Add (Card
 numericSuit :: Integer -> Integer -> Suit -> Hand
 numericSuit x y suit
   | x > y         = Empty
-  | x <= y        = Add (Card (Numeric x) suit) (numericSuit (x+1) y suit)
-numericSuit _ _ _ = error "Unexpected input error"
+  | otherwise     = Add (Card (Numeric x) suit) (numericSuit (x+1) y suit)
 
 --B3
 -- | Draw the top card off of a deck
@@ -121,24 +117,22 @@ shuffle g deck = shuffle' g deck Empty
 -- | Helper function to shuffle
 shuffle' :: StdGen -> Hand -> Hand -> Hand
 shuffle' g Empty newDeck = newDeck
-shuffle' g deck newDeck  = shuffle' g (removeCard 0 n deck) (newDeck <+ (returnCard 0 n deck))
-  where n = fst(randomR (0,((size deck)-1)) g)
+shuffle' g deck newDeck  = shuffle' g1 (removeCard 0 n1 deck) (newDeck <+ (returnCard 0 n1 deck))
+  where (n1,g1) = randomR (0,(size deck) -1) g
 
 -- | Removes a card from a deck at a specified location
 removeCard :: Integer -> Integer -> Hand -> Hand
 removeCard _ _ Empty  = Empty
 removeCard index removeAt (Add card x)
   | index == removeAt = x
-  | index < removeAt  = Add card (removeCard (index+1) removeAt x)
-removeCard _ _ _ = error "Unexpected input error"
+  | otherwise  = Add card (removeCard (index+1) removeAt x)
 
 -- | Returns a card from a deck at a specified location
 returnCard :: Integer -> Integer -> Hand -> Hand
 returnCard _ _ Empty  = Empty
 returnCard index location (Add card x)
   | index == location = Add card Empty
-  | index < location  = returnCard (index+1) location x
-returnCard _ _ _ = error "Unexpected input error"
+  | otherwise  = returnCard (index+1) location x
 
 -- | Checks whether a card is within a hand before and after a shuffle
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
