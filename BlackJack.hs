@@ -117,22 +117,31 @@ shuffle g deck = shuffle' g deck Empty
 -- | Helper function to shuffle
 shuffle' :: StdGen -> Hand -> Hand -> Hand
 shuffle' g Empty newDeck = newDeck
-shuffle' g deck newDeck  = shuffle' g1 (removeCard 0 n1 deck) (newDeck <+ (returnCard 0 n1 deck))
+shuffle' g deck newDeck  = shuffle' g1 (handleCard n1 True deck) (newDeck <+ (handleCard n1 False deck))
   where (n1,g1) = randomR (0,(size deck) -1) g
 
--- | Removes a card from a deck at a specified location
-removeCard :: Integer -> Integer -> Hand -> Hand
-removeCard _ _ Empty  = Empty
-removeCard index removeAt (Add card x)
-  | index == removeAt = x
-  | otherwise  = Add card (removeCard (index+1) removeAt x)
+---- | Removes a card from a deck at a specified location
+--removeCard :: Integer -> Integer -> Hand -> Hand
+--removeCard _ _ Empty  = Empty
+--removeCard index removeAt (Add card x)
+--  | index == removeAt = x
+--  | otherwise  = Add card (removeCard (index+1) removeAt x)
 
--- | Returns a card from a deck at a specified location
-returnCard :: Integer -> Integer -> Hand -> Hand
-returnCard _ _ Empty  = Empty
-returnCard index location (Add card x)
-  | index == location = Add card Empty
-  | otherwise  = returnCard (index+1) location x
+---- | Returns a card from a deck at a specified location
+--returnCard :: Integer -> Integer -> Hand -> Hand
+--returnCard _ _ Empty  = Empty
+--returnCard index location (Add card x)
+--  | index == location = Add card Empty
+--  | otherwise  = returnCard (index+1) location x
+
+-- | Combine removeCard and returnCard
+handleCard :: Integer -> Bool -> Hand -> Hand
+handleCard _ _ Empty = Empty
+handleCard index remove (Add card hand) | index == 0 && remove = hand
+                                        | index == 0           = Add card Empty
+                                        | remove               = Add card (handleCard (index-1) remove hand)
+                                        | otherwise            = handleCard (index-1) remove hand
+
 
 -- | Checks whether a card is within a hand before and after a shuffle
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
