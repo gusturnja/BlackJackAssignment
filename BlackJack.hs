@@ -143,6 +143,28 @@ handleCard index remove (Add card hand) | index == 0 && remove = hand
                                         | otherwise            = handleCard (index-1) remove hand
 
 
+
+-- | Return either an added or a removed card along with the updated deck
+handleCard :: Integer -> Bool -> Hand -> (Hand, Card)
+handleCard _ _ Empty = error "Error: No hand given"
+handleCard index remove (Add card hand)
+  | index == 0 && remove = (hand, card)
+  | index == 0           = (Add card hand, card)
+  | otherwise            = (removeCard' (index-1) hand, getCardAt' (index-1) hand)
+
+-- | (Help function) Removes a card from a deck
+removeCard' :: Integer -> Hand -> Hand
+removeCard' index (Add card hand)
+  | index == 0 = hand
+  | otherwise  = Add card (removeCard' (index-1) hand)
+
+-- | (Help function) Returns card at an index in a deck
+getCardAt' :: Integer -> Hand -> Card
+getCardAt' index (Add card hand)
+  | index == 0 = card
+  | otherwise  = getCardAt' (index-1) hand
+
+
 -- | Checks whether a card is within a hand before and after a shuffle
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
